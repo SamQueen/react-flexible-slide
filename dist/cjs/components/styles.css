@@ -1,0 +1,43 @@
+#carousel {
+    position: relative;
+    display: flex;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+#carousel-container {
+    display: flex;
+    position: relative;
+}
+
+img {
+    height: 100%;
+    width: 100%;
+}
+
+#right-arrow {
+    background-color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+}
+
+#left-arrow {
+    background-color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+}
+
+.item {
+    flex: 0 0 auto;
+    position: absolute;
+    min-width: 100px;
+    left: 0;
+    transition: 0.8s;
+}
