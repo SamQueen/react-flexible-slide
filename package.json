@@ -1,6 +1,6 @@
 {
   "name": "react-flexible-slide",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "My component library",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "Sam Queen",
   "license": "MIT",
-  "dependencies": {
+  "devDependencies": {
     "@types/node": "^20.12.11",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",

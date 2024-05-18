@@ -35,21 +35,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Carousel = void 0;
 const react_1 = __importStar(require("react"));
 require("./styles.css");
-const Carousel = ({ aspectRatio, children }) => {
+const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
+    const carouselRef = (0, react_1.useRef)(null);
+    const leftArrowRef = (0, react_1.useRef)(null);
+    const rightArrowRef = (0, react_1.useRef)(null);
     const [showLeftArrow, setShowLeftArrow] = (0, react_1.useState)(false);
     const [childWidth, setChildWidth] = (0, react_1.useState)(0);
     const [isSliding, setIsSliding] = (0, react_1.useState)(false);
     const [windowSize, setWindowSize] = (0, react_1.useState)(0);
     const [pressed, setPressed] = (0, react_1.useState)(false);
     let arrowWidth = 0;
-    const gap = 5;
     const setCarouselSizes = () => {
-        const carousel = document.getElementById('carousel');
-        const items = document.getElementsByClassName('item');
-        if (carousel && items.length > 0) {
-            const carouselWidth = carousel.getBoundingClientRect().width;
+        const carouselContainer = carouselRef.current;
+        const items = carouselContainer === null || carouselContainer === void 0 ? void 0 : carouselContainer.getElementsByClassName('item');
+        if (carouselContainer && items) {
+            const carouselWidth = carouselContainer.getBoundingClientRect().width;
             let itemsInWindow;
-            if (carouselWidth >= 1200) {
+            if (carouselWidth >= 1400) {
+                itemsInWindow = 8;
+                arrowWidth = 50;
+            }
+            else if (carouselWidth >= 1200) {
                 itemsInWindow = 6;
                 arrowWidth = 50;
             }
@@ -71,13 +77,15 @@ const Carousel = ({ aspectRatio, children }) => {
             const imgWidth = ((carouselWidth - (arrowWidth * 2)) / itemsInWindow) - (gap * (itemsInWindow - 1)) / itemsInWindow;
             const imgHeight = imgWidth / aspectRatio;
             setChildWidth(imgWidth);
-            // set width of the right and left arrows
-            const leftArrow = document.getElementById('left-arrow');
-            const rightArrow = document.getElementById('right-arrow');
+            // set height and width of the right and left arrows
+            const leftArrow = leftArrowRef.current;
+            const rightArrow = rightArrowRef.current;
             leftArrow.style.width = `${arrowWidth}px`;
+            leftArrow.style.height = `${imgHeight}px`;
             rightArrow.style.width = `${arrowWidth}px`;
+            rightArrow.style.height = `${imgHeight}px`;
             // set carousel height
-            carousel.style.height = `${imgHeight}px`;
+            carouselContainer.style.height = `${imgHeight * scale}px`;
             for (let i = 0; i < items.length; i++) {
                 items[i].style.width = `${imgWidth}px`;
                 items[i].style.height = `${imgHeight}px`;
@@ -92,21 +100,17 @@ const Carousel = ({ aspectRatio, children }) => {
     };
     // init 
     (0, react_1.useEffect)(() => {
-        const items = document.getElementsByClassName('item');
-        const carousel = document.getElementById('carousel');
         // set left arrow display
         setShowLeftArrow(showLeftArrow);
-        if (carousel && items.length > 0) {
-            // set carousel width
-            setCarouselSizes();
-            window.addEventListener('resize', setCarouselSizes);
-        }
+        // set carousel width
+        setCarouselSizes();
+        window.addEventListener('resize', setCarouselSizes);
     }, []);
     // update left arrow
     (0, react_1.useEffect)(() => {
-        const leftArrow = document.getElementById('left-arrow');
+        const leftArrow = leftArrowRef.current;
         if (showLeftArrow) {
-            leftArrow.style.display = "block";
+            leftArrow.style.display = "flex";
         }
         else {
             leftArrow.style.display = "none";
@@ -132,8 +136,8 @@ const Carousel = ({ aspectRatio, children }) => {
         });
     });
     const slideRight = () => {
-        const items = document.getElementsByClassName('item');
-        const carouselDiv = document.getElementById('carousel');
+        const carouselContainer = carouselRef.current;
+        const items = carouselContainer === null || carouselContainer === void 0 ? void 0 : carouselContainer.getElementsByClassName('item');
         let itemsToRight = 0; // items to the left of the window
         let itemsToDelete = 0;
         console.log(items.length);
@@ -142,7 +146,7 @@ const Carousel = ({ aspectRatio, children }) => {
             return;
         setIsSliding(true);
         // append node to the end
-        if (carouselDiv) {
+        if (items) {
             const carousel = document.getElementById('carousel');
             const rigthBound = carousel.getBoundingClientRect().width;
             for (let item of items) {
@@ -165,7 +169,7 @@ const Carousel = ({ aspectRatio, children }) => {
                 const newNodePosition = lastNodePosition + childWidth + gap;
                 newNode.style.left = `${newNodePosition}px`;
                 itemsToDelete++;
-                carouselDiv.appendChild(newNode);
+                carouselContainer.appendChild(newNode);
             }
             animateSlide(items, "right").then(() => {
                 setTimeout(() => {
@@ -185,17 +189,16 @@ const Carousel = ({ aspectRatio, children }) => {
         }
     };
     const slideLeft = () => {
-        const items = document.getElementsByClassName('item');
-        const carouselDiv = document.getElementById('carousel');
+        const carouselContainer = carouselRef.current;
+        const items = carouselContainer === null || carouselContainer === void 0 ? void 0 : carouselContainer.getElementsByClassName('item');
         let itemsToRight = 0; // items to the left of the window
         let itemsToDelete = 0;
-        console.log(items.length);
         // check if is sliding
         if (isSliding)
             return;
         setIsSliding(true);
         // append node to the end
-        if (carouselDiv) {
+        if (items) {
             const leftBound = 0;
             let itemsToLeft = 0;
             for (let item of items) {
@@ -212,7 +215,7 @@ const Carousel = ({ aspectRatio, children }) => {
                 const firstPosition = parseFloat(firstNode.style.left) || 0;
                 const newNodePosition = firstPosition - (childWidth + gap);
                 newNode.style.left = `${newNodePosition}px`;
-                carouselDiv.insertBefore(newNode, carouselDiv.firstChild);
+                carouselContainer.insertBefore(newNode, carouselContainer.firstChild);
                 itemsToDelete++;
             }
             animateSlide(items, "left").then(() => {
@@ -226,10 +229,38 @@ const Carousel = ({ aspectRatio, children }) => {
             });
         }
     };
+    const mouseOver = (itemDiv) => {
+        const xPos = ((childWidth * scale) - childWidth) / 2; // difference between the child width and new width divided by 2
+        itemDiv.style.width = `${(childWidth * scale)}px`;
+        itemDiv.style.height = `${((childWidth / aspectRatio) * scale)}px`;
+        itemDiv.style.transform = `translate(${-xPos}px, -50%)`;
+        itemDiv.style.zIndex = '200';
+    };
+    const mouseLeave = (itemDiv) => {
+        itemDiv.style.width = `${(childWidth)}px`;
+        itemDiv.style.height = `${(childWidth / aspectRatio)}px`;
+        itemDiv.style.transform = 'translate(0, -50%)';
+        itemDiv.style.zIndex = '1';
+    };
+    // Mapping over children. Encapsulate each child in an item div
+    const mappedChildren = react_1.default.Children.map(children, (child, index) => {
+        // Check if the child is a valid React element
+        if (react_1.default.isValidElement(child)) {
+            return (react_1.default.createElement("div", { key: index, className: 'item', onMouseOver: (e) => { mouseOver(e.currentTarget); }, onMouseLeave: (e) => { mouseLeave(e.currentTarget); } }, child));
+        }
+        // If the child is not a valid React element, return it as it is
+        return child;
+    });
     return (react_1.default.createElement("div", { id: "carousel-container" },
-        react_1.default.createElement("div", { id: "carousel" }, children),
-        react_1.default.createElement("div", { id: "left-arrow", onClick: slideLeft }, " "),
-        react_1.default.createElement("div", { id: "right-arrow", onClick: slideRight }, " ")));
+        react_1.default.createElement("div", { id: "carousel", ref: carouselRef }, mappedChildren),
+        react_1.default.createElement("div", { id: "left-arrow", ref: leftArrowRef, onClick: slideLeft },
+            react_1.default.createElement("div", { className: 'arrow-lines-container' },
+                react_1.default.createElement("div", { className: 'line r1' }),
+                react_1.default.createElement("div", { className: 'line r2' }))),
+        react_1.default.createElement("div", { id: "right-arrow", ref: rightArrowRef, onClick: slideRight },
+            react_1.default.createElement("div", { className: 'arrow-lines-container' },
+                react_1.default.createElement("div", { className: 'line l1' }),
+                react_1.default.createElement("div", { className: 'line l2' })))));
 };
 exports.Carousel = Carousel;
 //# sourceMappingURL=Carousel.js.map
