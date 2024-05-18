@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles.css';
 interface CarouselProps {
-    scale: number;
+    scale?: number;
     aspectRatio?: number;
     gap?: number;
     children: React.ReactNode;

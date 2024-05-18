@@ -44,7 +44,7 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
     const [isSliding, setIsSliding] = (0, react_1.useState)(false);
     const [windowSize, setWindowSize] = (0, react_1.useState)(0);
     const [pressed, setPressed] = (0, react_1.useState)(false);
-    let arrowWidth = 0;
+    const [arrowWidth, setArrowWidth] = (0, react_1.useState)(50);
     const setCarouselSizes = () => {
         const carouselContainer = carouselRef.current;
         const items = carouselContainer === null || carouselContainer === void 0 ? void 0 : carouselContainer.getElementsByClassName('item');
@@ -53,23 +53,23 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
             let itemsInWindow;
             if (carouselWidth >= 1400) {
                 itemsInWindow = 8;
-                arrowWidth = 50;
+                setArrowWidth(50);
             }
             else if (carouselWidth >= 1200) {
                 itemsInWindow = 6;
-                arrowWidth = 50;
+                setArrowWidth(50);
             }
             else if (carouselWidth >= 800) {
                 itemsInWindow = 5;
-                arrowWidth = 45;
+                setArrowWidth(45);
             }
             else if (carouselWidth >= 600) {
                 itemsInWindow = 4;
-                arrowWidth = 40;
+                setArrowWidth(40);
             }
             else {
                 itemsInWindow = 2;
-                arrowWidth = 35;
+                setArrowWidth(35);
             }
             // set item window size
             setWindowSize(itemsInWindow);
@@ -135,12 +135,50 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
             }, 100);
         });
     });
+    const mouseOver = (itemDiv, calledDirectly) => {
+        const handleMouseOver = () => {
+            var _a;
+            const carouselWidth = (_a = carouselRef.current) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect().width;
+            const pos = parseFloat(itemDiv.style.left);
+            const xPos = ((childWidth * scale) - childWidth) / 2; // difference between the child width and new width divided by 2
+            itemDiv.style.width = `${(childWidth * scale)}px`;
+            itemDiv.style.height = `${((childWidth / aspectRatio) * scale)}px`;
+            itemDiv.style.zIndex = '200';
+            // if first or last item in the carousel window
+            if (pos === arrowWidth) {
+                ;
+            }
+            else if ((pos + childWidth) === (carouselWidth - arrowWidth)) {
+                itemDiv.style.transform = `translate(${-(2 * xPos)}px, -50%)`;
+            }
+            else {
+                itemDiv.style.transform = `translate(${-xPos}px, -50%)`;
+            }
+        };
+        if (!calledDirectly)
+            handleMouseOver();
+        return () => {
+            handleMouseOver();
+        };
+    };
+    const mouseLeave = (itemDiv, calledDirectly) => {
+        const handleMouseLeave = () => {
+            itemDiv.style.width = `${(childWidth)}px`;
+            itemDiv.style.height = `${(childWidth / aspectRatio)}px`;
+            itemDiv.style.transform = 'translate(0, -50%)';
+            itemDiv.style.zIndex = '1';
+        };
+        if (!calledDirectly)
+            handleMouseLeave();
+        return () => {
+            handleMouseLeave();
+        };
+    };
     const slideRight = () => {
         const carouselContainer = carouselRef.current;
         const items = carouselContainer === null || carouselContainer === void 0 ? void 0 : carouselContainer.getElementsByClassName('item');
         let itemsToRight = 0; // items to the left of the window
         let itemsToDelete = 0;
-        console.log(items.length);
         // check if is sliding
         if (isSliding)
             return;
@@ -164,6 +202,9 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
                 else {
                     newNode = items[i].cloneNode(true);
                 }
+                //manually attach event listeners
+                newNode.addEventListener('mouseover', mouseOver(newNode, true));
+                newNode.addEventListener('mouseleave', mouseLeave(newNode, true));
                 const lastNode = items[items.length - 1];
                 const lastNodePosition = parseFloat(lastNode.style.left) || 0;
                 const newNodePosition = lastNodePosition + childWidth + gap;
@@ -211,6 +252,9 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
             let index = items.length - 1;
             for (let i = 0; i < (windowSize - itemsToRight); i++) {
                 let newNode = items[index - 1].cloneNode(true);
+                // manually attach event listeners
+                newNode.addEventListener('mouseover', mouseOver(newNode, true));
+                newNode.addEventListener('mouseleave', mouseLeave(newNode, true));
                 const firstNode = items[0];
                 const firstPosition = parseFloat(firstNode.style.left) || 0;
                 const newNodePosition = firstPosition - (childWidth + gap);
@@ -229,24 +273,11 @@ const Carousel = ({ scale = 1, gap = 5, aspectRatio = 1.778, children }) => {
             });
         }
     };
-    const mouseOver = (itemDiv) => {
-        const xPos = ((childWidth * scale) - childWidth) / 2; // difference between the child width and new width divided by 2
-        itemDiv.style.width = `${(childWidth * scale)}px`;
-        itemDiv.style.height = `${((childWidth / aspectRatio) * scale)}px`;
-        itemDiv.style.transform = `translate(${-xPos}px, -50%)`;
-        itemDiv.style.zIndex = '200';
-    };
-    const mouseLeave = (itemDiv) => {
-        itemDiv.style.width = `${(childWidth)}px`;
-        itemDiv.style.height = `${(childWidth / aspectRatio)}px`;
-        itemDiv.style.transform = 'translate(0, -50%)';
-        itemDiv.style.zIndex = '1';
-    };
     // Mapping over children. Encapsulate each child in an item div
     const mappedChildren = react_1.default.Children.map(children, (child, index) => {
         // Check if the child is a valid React element
         if (react_1.default.isValidElement(child)) {
-            return (react_1.default.createElement("div", { key: index, className: 'item', onMouseOver: (e) => { mouseOver(e.currentTarget); }, onMouseLeave: (e) => { mouseLeave(e.currentTarget); } }, child));
+            return (react_1.default.createElement("div", { key: index, className: 'item', onMouseOver: (e) => { mouseOver(e.currentTarget, false); }, onMouseLeave: (e) => { mouseLeave(e.currentTarget, false); } }, child));
         }
         // If the child is not a valid React element, return it as it is
         return child;
